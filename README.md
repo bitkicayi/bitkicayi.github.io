@@ -5,8 +5,7 @@ Bu proje Web Tabanlı Programlama dersi kapsamında geliştirilmiştir. HTML5 ve
 Oyuncu ve rakip sırayla pin yerleştirerek, toplarla bu pinleri hedef alır. Her pin farklı etkiler sağlar: saldırı, savunma ve iyileştirme. Amaç, rakibin canını sıfıra indirerek oyunu kazanmaktır.
 
 ## 📌 Proje Linki
-
-https://kullaniciadiniz.github.io](https://bitkicayi.github.io/
+https://bitkicayi.github.io/
 
 
 ## 📸 Ekran Görüntüleri
