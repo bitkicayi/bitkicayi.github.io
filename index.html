@@ -1,0 +1,895 @@
+<!DOCTYPE html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Gladyatör Arenası</title>
+    <style>
+      /* Arka planı siyah yapmak ve yazı tipini sade tutmak için */
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background: #1a1a1a;
+        color: white;
+        font-family: sans-serif;
+      }
+      /* Sayfayı 3 parçaya bölmek için: sol panel, oyun alanı, sağ panel */
+      #gameLayout {
+        display: flex;
+        width: 100vw;
+        height: 100vh;
+        overflow: hidden;
+      }
+      /* Oyuncu ve rakip panelleri için */
+      #leftPanel,
+      #rightPanel {
+        flex: 0 0 200px;
+        background: #1a1a1a;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding-top: 20px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.7);
+      }
+      /* Ortadaki oyun alanı için */
+      #arenaContainer {
+        position: relative;
+        flex: 1;
+        background: #111;
+      }
+      /* Oyunun çizimi için */
+      #game {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        display: block;
+      }
+      /* Oyuncu ve rakip portreleri için */
+      .portre {
+        width: 120px;
+        height: auto;
+        border: 4px solid white;
+        border-radius: 8px;
+        margin-bottom: 12px;
+      }
+      /* Can barı için */
+      .hpBar {
+        width: 80%;
+        height: 16px;
+        background: #330000;
+        border: 1px solid #880000;
+        border-radius: 4px;
+        overflow: hidden;
+        margin-bottom: 6px;
+      }
+      /* Can barının dolu kısmı için */
+      .hpBar .fill {
+        height: 100%;
+        background: #a00;
+        width: 100%;
+      }
+      /* Can değeri metni için */
+      .hpText {
+        font-size: 16px;
+        margin-bottom: 20px;
+      }
+      /* Seviye göstergesi için */
+      #levelDisplay {
+        position: absolute;
+        top: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        color: #ddd;
+        font-size: 16px;
+      }
+      /* Alt kısımda oyuncuya ipucu veren yazı için */
+      #ipucu {
+        position: absolute;
+        bottom: 10px;
+        left: 50%;
+        transform: translateX(-50%);
+        font-size: 14px;
+        color: #ccc;
+      }
+      /* Sonraki raund butonu için */
+      #nextRound {
+        position: absolute;
+        bottom: 50px;
+        left: 50%;
+        transform: translateX(-50%);
+      }
+      /* Tüm butonlar için */
+      button {
+        padding: 6px 12px;
+        margin: 4px;
+        cursor: pointer;
+      }
+      /* Strateji kartları için */
+      .card {
+        border: 2px solid white;
+        padding: 10px;
+        text-align: center;
+        background: rgba(0, 0, 0, 0.6);
+        cursor: pointer;
+        transition: transform 0.2s;
+        border-radius: 10px;
+      }
+      /* Kartlara mouse ile gelince */
+      .card:hover {
+        transform: scale(1.1);
+        border-color: gold;
+      }
+      /* Menü ekranları için */
+      #mainMenu,
+      #howToPlay {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #111 url("menu_bg.png") center/cover no-repeat;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        z-index: 100;
+        color: white;
+        font-family: sans-serif;
+        text-align: center;
+      }
+      /* Menü başlığı için */
+      #mainMenu h1 {
+        margin-bottom: 24px;
+        font-size: 36px;
+      }
+      /* Menü butonları için */
+      #mainMenu button,
+      #howToPlay button {
+        padding: 12px 24px;
+        margin: 8px;
+        font-size: 18px;
+        border: 2px solid white;
+        background: transparent;
+        color: white;
+        cursor: pointer;
+        border-radius: 6px;
+        transition: background 0.2s;
+      }
+      /* Butonlara mouse ile gelince */
+      #mainMenu button:hover,
+      #howToPlay button:hover {
+        background: rgba(255, 255, 255, 0.2);
+      }
+      /* Nasıl oynanır kısmındaki maddeler için */
+      #howToPlay ul {
+        text-align: left;
+        margin-bottom: 20px;
+        line-height: 1.5;
+      }
+    </style>
+    <!-- Arka planda çalacak ve oyun sırasında tetiklenecek sesler için -->
+    <audio id="bgMuzik" loop src="bg.mp3"></audio>
+    <audio id="hitSesi" src="hit.wav"></audio>
+    <audio id="levelUpSesi" src="levelup.wav"></audio>
+    <audio id="gameOverSesi" src="gameover.mp3"></audio>
+    <audio id="winSesi" src="win.wav"></audio>
+  </head>
+  <body>
+    <!-- Ana menü için -->
+    <div id="mainMenu">
+      <h1>Gladyatör'ün Kaderi</h1>
+      <button id="playButton">Oyun Oyna</button>
+      <button id="howToPlayButton">Oyun Nasıl Oynanır?</button>
+    </div>
+    <!-- Oyuncunun ses seviyesini ayarlayabileceği bar için -->
+    <div style="position: absolute; bottom: 10px; right: 10px; color: white">
+      Ses:
+      <input
+        id="muzikSesSlider"
+        type="range"
+        min="0"
+        max="1"
+        step="0.01"
+        value="0.5"
+      />
+    </div>
+    <!-- Oyun kurallarını gösteren "nasıl oynanır" ekranı için -->
+    <div id="howToPlay" style="display: none">
+      <h2>Oyun Nasıl Oynanır</h2>
+      <ul>
+        <li>
+          Oyun 3 seviyeden oluşur. Her seviyede rakibin canını sıfırlamaya
+          çalışırsınız.
+        </li>
+        <li>
+          Oyun başında bir strateji seçin: Ofansif, Defansif veya Dengeli.
+          Seçiminiz pin türlerini belirler.
+        </li>
+        <li>
+          pinnokta’lara tıklayarak pinlerinizi yerleştirin. Her pin türünün
+          farklı bir etkisi vardır:
+          <ul>
+            <li><strong>Atak Pini</strong>: Rakibe hasar verir.</li>
+            <li><strong>Defans Pini</strong>: Gelen hasarı azaltır.</li>
+            <li><strong>Sağlık Pini</strong>: Size can kazandırır.</li>
+          </ul>
+        </li>
+        <li>
+          Space tuşuna basarak 3 top atın. Toplar pinlere çarptıkça etkiler
+          tetiklenir.
+        </li>
+        <li>
+          Bir top, birden fazla pine çarpabilir. Her çarpma sayılır ve etkisi
+          toplanır. (aynı topun aynı pine üçten fazla çarpması hesaplamaya dahil
+          edilmez!)
+        </li>
+        <li>
+          Her raund sonunda “Yeni Pinler Ekle” butonuyla yeni pin yerleştirme
+          şansı verilir.
+        </li>
+        <li>
+          Tüm toplar atıldıktan sonra can durumu hesaplanır. Canınız
+          sıfırlanırsa kaybedersiniz.
+        </li>
+        <li>
+          Her seviye sonunda yeni pinler ve daha güçlü rakiplerle
+          karşılaşırsınız.
+        </li>
+        <li>
+          Oyun sonunda kazandığınızda veya kaybettiğinizde <b>r</b> tuşuyla
+          yeniden başlayabilirsiniz.
+        </li>
+      </ul>
+      <button id="backToMenu">Geri</button>
+    </div>
+    <!-- Oyunun tüm alanlarını kapsayan yapı için -->
+    <div id="gameLayout">
+      <!-- Sol panelde oyuncunun bilgileri için -->
+      <div id="leftPanel">
+        <img src="oyuncuportre.png" alt="Oyuncu" class="portre" />
+        <div class="hpBar">
+          <div class="fill" id="oyuncuHpFill"></div>
+        </div>
+        <div class="hpText" id="oyuncuHpText">100 / 100</div>
+      </div>
+      <!-- Ortadaki ana oyun sahası için -->
+      <div id="arenaContainer">
+        <div id="levelDisplay">Seviye: <span id="level">1</span> / 3</div>
+        <canvas id="game"></canvas>
+        <div id="ipucu">Space ile 3 top at!</div>
+        <div id="nextRound" style="display: none">
+          <button id="addPinler">Yeni Pinler Ekle</button>
+        </div>
+      </div>
+      <!-- Sağ panelde rakibin bilgileri için -->
+      <div id="rightPanel">
+        <img src="rakipportre.png" alt="Rakip" class="portre" />
+        <div class="hpBar">
+          <div class="fill" id="rakipHpFill"></div>
+        </div>
+        <div class="hpText" id="rakipHpText">120 / 120</div>
+      </div>
+    </div>
+    <!-- Oyuncunun strateji kartı seçmesi için menü -->
+    <div
+      id="stratejiMenu"
+      style="
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: #111 url('arena_bg.png') center/contain no-repeat;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        z-index: 10;
+      "
+    >
+      <h2>Stratejini Seç</h2>
+      <div style="display: flex; gap: 30px; margin-top: 20px">
+        <!-- Ofansif kart için -->
+        <div class="card" data-strategy="offensive">
+          <img src="ofansif.png" width="100" /><br />
+          <strong>Ofansif</strong><br />
+          <small>3 Saldırı, 1 Savunma</small>
+        </div>
+        <!-- Defansif kart için -->
+        <div class="card" data-strategy="defensive">
+          <img src="defansif.png" width="100" /><br />
+          <strong>Defansif</strong><br />
+          <small>2 Savunma, 2 İyileştirme</small>
+        </div>
+        <!-- Dengeli kart için -->
+        <div class="card" data-strategy="balanced">
+          <img src="dengeli.png" width="100" /><br />
+          <strong>Dengeli</strong><br />
+          <small>2 Saldırı, 1 Savunma, 1 İyileştirme</small>
+        </div>
+      </div>
+    </div>
+    <script>
+      (() => {
+        /* Panel genişliği ve ses ayarları için */
+        const panelBoyutu = 200;
+        const bgMuzik = document.getElementById("bgMuzik");
+        bgMuzik.volume = 0.5;
+        const muzikSesSlider = document.getElementById("muzikSesSlider");
+        muzikSesSlider.addEventListener("input", () => {
+          bgMuzik.volume = parseFloat(muzikSesSlider.value);
+        });
+        /* Diğer ses öğeleri için */
+        const hitSesi = document.getElementById("hitSesi");
+        const levelUpSesi = document.getElementById("levelUpSesi");
+        const gameOverSesi = document.getElementById("gameOverSesi");
+        const winSesi = document.getElementById("winSesi");
+        /* Canvas ve temel oyun değişkenleri için */
+        const canvas = document.getElementById("game");
+        const ctx = canvas.getContext("2d");
+        const maxLevel = 3;
+        let raundIcinSecim = false;
+        let rakipMaxHp = 120;
+        let w, h;
+        let seciliYapi = null;
+        const pinnoktaBoyutu = 60;
+        const pinnoktaDizisi = [];
+        let notrPin = [],
+          oyuncuPinl = [],
+          rakipPin = [],
+          toplar = [];
+        let oyuncuHp = 100,
+          rakipHp = rakipMaxHp,
+          level = 1;
+        let atisSayisi = 0;
+        const raundBasiMaxSut = 3;
+        let raundBittiMi = false;
+        let baslatici = null;
+        let rakipYerlestiMi = false;
+        let rakipPinlerayisi = 4;
+        /* Pin ikonları için resim nesneleri */
+        const pinGorselleri = {
+          atak: new Image(),
+          defans: new Image(),
+          saglik: new Image(),
+        };
+        pinGorselleri.atak.src = "balta.png";
+        pinGorselleri.defans.src = "kalkan.png";
+        pinGorselleri.saglik.src = "saglik.png";
+        /* Pin sınıfı: her pinin tipi, sahibi, konumu ve çizimi */
+        class Pin {
+          constructor(x, y, tip, sahibi) {
+            this.x = x;
+            this.y = y;
+            this.tip = tip;
+            this.sahibi = sahibi;
+            this.yaricap = 14;
+            this.hit = false;
+          }
+          draw() {
+            const boyut = 28;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, boyut / 2 + 2, 0, Math.PI * 2);
+            ctx.fillStyle = "#111";
+            ctx.fill();
+            ctx.strokeStyle =
+              this.sahibi === "oyuncu"
+                ? "cyan"
+                : this.sahibi === "rakip"
+                ? "orange"
+                : "#555";
+            ctx.lineWidth = 2;
+            ctx.stroke();
+
+            const img = pinGorselleri[this.tip];
+            if (img && img.complete) {
+              ctx.drawImage(
+                img,
+                this.x - boyut / 2,
+                this.y - boyut / 2,
+                boyut,
+                boyut
+              );
+            } else {
+              ctx.beginPath();
+              ctx.arc(this.x, this.y, boyut / 2 - 4, 0, Math.PI * 2);
+              ctx.strokeStyle = "gray";
+              ctx.stroke();
+            }
+          }
+        }
+        /* Top sınıfı: hareket, çarpışma ve hasar işlemleri */
+        class top {
+          constructor(x, y, vx = 0, vy = 0) {
+            this.x = x;
+            this.y = y;
+            this.vx = vx;
+            this.vy = vy;
+            this.yaricap = 14;
+            this.carpisanPinler = new Set();
+            this.hitSayilari = new Map();
+            this.active = true;
+          }
+          update() {
+            if (!this.active) return;
+            const hiz = Math.hypot(this.vx, this.vy);
+            const asamalar = Math.min(12, Math.max(4, Math.ceil(hiz / 2)));
+            const gravityAsama = 0.2 / asamalar;
+            const vxAsama = this.vx / asamalar;
+            const vyAsama = this.vy / asamalar;
+            for (let i = 0; i < asamalar; i++) {
+              this.vy += gravityAsama;
+              this.x += vxAsama;
+              this.y += vyAsama;
+              this.carpismaKontrolu();
+            }
+            /* Ekrandan çıkınca hasar işlemlerinin yapılması için */
+            if (this.x < this.yaricap || this.x > w - this.yaricap)
+              this.vx *= -1;
+            if (this.y < this.yaricap) this.vy *= -1;
+            if (this.y > h + this.yaricap) {
+              const hits = Array.from(this.hitSayilari.entries());
+              let pAtkSayisi = 0,
+                pDefSayisi = 0,
+                psaglikSayisi = 0;
+              let eAtkSayisi = 0,
+                eDefSayisi = 0,
+                esaglikSayisi = 0;
+
+              for (const [p, sayi] of hits) {
+                const carpma = Math.min(sayi, 3);
+                if (p.sahibi === "oyuncu") {
+                  if (p.tip === "atak") pAtkSayisi += carpma;
+                  else if (p.tip === "defans") pDefSayisi += carpma;
+                  else if (p.tip === "saglik") psaglikSayisi += carpma;
+                } else {
+                  if (p.tip === "atak") eAtkSayisi += carpma;
+                  else if (p.tip === "defans") eDefSayisi += carpma;
+                  else if (p.tip === "saglik") esaglikSayisi += carpma;
+                }
+              }
+              const dmgToRakip = Math.max(0, pAtkSayisi * 10 - eDefSayisi * 5);
+              const dmgToOyuncu = Math.max(0, eAtkSayisi * 10 - pDefSayisi * 5);
+              if (dmgToRakip > 0) rakipHp -= dmgToRakip;
+              if (dmgToOyuncu > 0) oyuncuHp -= dmgToOyuncu;
+              if (psaglikSayisi > 0)
+                oyuncuHp = Math.min(100, oyuncuHp + psaglikSayisi * 5);
+              if (esaglikSayisi > 0) {
+                const maxRakipHp = 120 + (level - 1) * 20;
+                rakipHp = Math.min(maxRakipHp, rakipHp + esaglikSayisi * 5);
+              }
+              arayuzGuncelleme();
+              this.active = false;
+              this.carpisanPinler.clear();
+              this.hitSayilari.clear();
+            }
+          }
+          /* Topun pinlere çarpıp çarpmadığını kontrol etmek için */
+          carpismaKontrolu() {
+            const tumPinler = notrPin.concat(oyuncuPinl, rakipPin);
+            /* Önceden çarptığı pinlerden uzaklaştıysa temizlemesi için */
+            for (const p of Array.from(this.carpisanPinler)) {
+              if (!p) continue;
+              const dx = this.x - p.x,
+                dy = this.y - p.y;
+              if (Math.hypot(dx, dy) > this.yaricap + p.yaricap + 2) {
+                this.carpisanPinler.delete(p);
+              }
+            }
+            /* Yeni çarpışmaları kontrol etmesi için */
+            for (const p of tumPinler) {
+              if (!p) continue;
+              const dx = this.x - p.x,
+                dy = this.y - p.y;
+              const mesafe = Math.hypot(dx, dy);
+              /* Zaten içindeyse ve mesafe değişmemişse geçmesi için */
+              if (
+                this.carpisanPinler.has(p) &&
+                mesafe < this.yaricap + p.yaricap + 2
+              ) {
+                continue;
+              }
+              /* Top çarpışırsa geri tepme hesaplası için */
+              if (mesafe < this.yaricap + p.yaricap) {
+                const overlap = this.yaricap + p.yaricap - mesafe + 0.1;
+                this.x += (dx / mesafe) * overlap;
+                this.y += (dy / mesafe) * overlap;
+                const nx = dx / mesafe,
+                  ny = dy / mesafe;
+                const proj = this.vx * nx + this.vy * ny;
+                this.vx -= 2 * proj * nx;
+                this.vy -= 2 * proj * ny;
+                this.vx *= 0.9;
+                this.vy *= 0.9;
+                /* Pin çarpışma setine eklemesi için */
+                this.carpisanPinler.add(p);
+                /* Kaç kere çarptığını sayması için */
+                const prev = this.hitSayilari.get(p) || 0;
+                this.hitSayilari.set(p, prev + 1);
+                /* Top pine çarptığında pin sesi gelmesi için */
+                hitSesi.currentTime = 0;
+                hitSesi.play();
+              }
+            }
+          }
+          /* Topu çizmek için */
+          draw() {
+            if (!this.active) return;
+            ctx.beginPath();
+            ctx.arc(this.x, this.y, this.yaricap, 0, Math.PI * 2);
+            ctx.fillStyle = "white";
+            ctx.fill();
+          }
+        }
+        /* Top atıcısını ekranda gösterip hareket ettirmek için */
+        class Baslatici {
+          constructor() {
+            this.x = w / 2;
+            this.y = 80;
+            this.vx = 2;
+            this.direction = 1;
+          }
+          update() {
+            this.x += this.vx * this.direction;
+            if (this.x < 40 || this.x > w - 40) this.direction *= -1;
+          }
+          draw() {
+            ctx.beginPath();
+            ctx.moveTo(this.x - 15, this.y);
+            ctx.lineTo(this.x + 15, this.y);
+            ctx.lineWidth = 4;
+            ctx.strokeStyle = "white";
+            ctx.stroke();
+          }
+          shoot() {
+            const initVx = (Math.random() - 0.5) * 2;
+            const topNesne = new top(this.x, this.y + 20, initVx, 0);
+            topNesne.carpisanPinler = new Set();
+            return topNesne;
+          }
+        }
+        /* Canvas'ı ekran boyutuna göre ayarlamak için */
+        function boyutlama2() {
+          const arena = document.getElementById("arenaContainer");
+          const rect = arena.getBoundingClientRect();
+          canvas.width = rect.width;
+          canvas.height = rect.height;
+          w = canvas.width;
+          h = canvas.height;
+          pinnoktaOlusturma();
+        }
+        window.addEventListener("resize", boyutlama2);
+        boyutlama2();
+        const yazi = document.getElementById("ipucu");
+        const nextDiv = document.getElementById("nextRound");
+        const btnAdd = document.getElementById("addPinler");
+        const stratejiMenu = document.getElementById("stratejiMenu");
+        /* Pin noktalarını oluşturmak için */
+        function pinnoktaOlusturma() {
+          pinnoktaDizisi.length = 0;
+          const sutunlar = Math.floor(w / pinnoktaBoyutu);
+          const startY = 80 + pinnoktaBoyutu;
+          const satirlar = Math.floor((h - startY) / pinnoktaBoyutu);
+          for (let satir = 0; satir < satirlar; satir++) {
+            for (let sutun = 0; sutun < sutunlar; sutun++) {
+              const x = sutun * pinnoktaBoyutu + pinnoktaBoyutu / 2;
+              const y = startY + satir * pinnoktaBoyutu + pinnoktaBoyutu / 2;
+              pinnoktaDizisi.push({ x: Math.round(x), y: Math.round(y) });
+            }
+          }
+        }
+        /* Can barlarını ve yazıları güncellemek için */
+        function arayuzGuncelleme() {
+          const oyuncuHpFill = document.getElementById("oyuncuHpFill");
+          const rakipHpFill = document.getElementById("rakipHpFill");
+          const oyuncuHpText = document.getElementById("oyuncuHpText");
+          const rakipHpText = document.getElementById("rakipHpText");
+          const oyuncuYuzde = Math.max(0, (oyuncuHp / 100) * 100);
+          const maxRakipHp = 120 + (level - 1) * 20;
+          const rakipYuzde = Math.max(0, (rakipHp / maxRakipHp) * 100);
+          oyuncuHpFill.style.width = `${oyuncuYuzde}%`;
+          rakipHpFill.style.width = `${rakipYuzde}%`;
+          oyuncuHpText.textContent = `${Math.max(0, oyuncuHp)} / 100`;
+          rakipHpText.textContent = `${Math.max(0, rakipHp)} / ${maxRakipHp}`;
+          yazi.textContent = `Seviye ${level} / ${maxLevel}`;
+          const levelSpan = document.getElementById("level");
+          if (levelSpan) levelSpan.textContent = level;
+          if (oyuncuHp <= 0) {
+            alert("Maalesef kaybettiniz!");
+            yazi.textContent = "Maalesef kaybettiniz! R tuşuna basın.";
+            document.removeEventListener("keydown", shootHandler);
+            document.addEventListener("keydown", (e) => {
+              if (e.key.toLowerCase() === "r") location.reload();
+            });
+            return;
+          }
+          if (rakipHp <= 0 && level >= maxLevel) {
+            alert(
+              "Tebrikler, tüm seviyeleri geçtiniz! Tekrar oynamak için R tuşuna basın."
+            );
+            yazi.textContent =
+              "Tebrikler, tüm seviyeleri geçtiniz! R tuşuna basın.";
+            document.removeEventListener("keydown", shootHandler);
+            document.addEventListener("keydown", (e) => {
+              if (e.key.toLowerCase() === "r") location.reload();
+            });
+            return;
+          }
+        }
+        /* Space tuşuna basıldığında top atmak için */
+        function shootHandler(e) {
+          if (oyuncuHp <= 0 || rakipHp <= 0) return;
+          if (e.code === "Space" && atisSayisi < raundBasiMaxSut) {
+            toplar.push(baslatici.shoot());
+            raundBittiMi = true;
+            atisSayisi++;
+          }
+        }
+        /* Yeni bir raund başlatmak için */
+        function raunduBaslat() {
+          yazi.textContent = "Space ile 3 top at!";
+          toplar = [];
+          atisSayisi = 0;
+          baslatici = new Baslatici();
+          raundBittiMi = false;
+          document.addEventListener("keydown", shootHandler);
+        }
+        /* Oyun sürekli çalışması için */
+        function loop() {
+          ctx.clearRect(0, 0, w, h);
+          if (baslatici) {
+            baslatici.update();
+            baslatici.draw();
+          }
+          notrPin.forEach((p) => p.draw());
+          oyuncuPinl.forEach((p) => p.draw());
+          rakipPin.forEach((p) => p.draw());
+          toplar.forEach((b) => {
+            b.update();
+            b.draw();
+          });
+          /* Boş noktaları artı şeklinde göstermesi için */
+          ctx.strokeStyle = "rgba(255,255,255,0.1)";
+          ctx.lineWidth = 1;
+          const crossboyut = 4;
+          for (let p of pinnoktaDizisi) {
+            if (
+              !oyuncuPinl.some((pp) => pp.x === p.x && pp.y === p.y) &&
+              !rakipPin.some((ep) => ep.x === p.x && ep.y === p.y) &&
+              !notrPin.some((np) => np.x === p.x && np.y === p.y)
+            ) {
+              ctx.beginPath();
+              ctx.moveTo(p.x - crossboyut, p.y);
+              ctx.lineTo(p.x + crossboyut, p.y);
+              ctx.moveTo(p.x, p.y - crossboyut);
+              ctx.lineTo(p.x, p.y + crossboyut);
+              ctx.stroke();
+            }
+          }
+          /* Eğer tüm toplar bitti ve raunt tamamlandıysa devam etmek için */
+          if (
+            raundBittiMi &&
+            (atisSayisi >= raundBasiMaxSut || rakipHp <= 0) &&
+            toplar.every((b) => !b.active)
+          ) {
+            document.removeEventListener("keydown", shootHandler);
+            nextDiv.style.display = "block";
+            yazi.textContent = "Raunt bitti. Devam etmek için butona tıkla.";
+            raundBittiMi = false;
+          }
+          requestAnimationFrame(loop);
+        }
+        /* Nötr pinleri rastgele yerleştirmek için */
+        function notrYerlestirme() {
+          notrPin = [];
+          const pinYaricapi = 14;
+          const guvenliBolge = pinnoktaDizisi.filter(
+            (p) =>
+              p.x > pinYaricapi &&
+              p.x < w - pinYaricapi &&
+              p.y > 80 + pinYaricapi &&
+              p.y < h - pinYaricapi
+          );
+          const notrSayisi = Math.floor(pinnoktaDizisi.length * 0.2);
+          for (let i = 0; i < notrSayisi; i++) {
+            if (!guvenliBolge.length) break;
+            const idx = Math.floor(Math.random() * guvenliBolge.length);
+            const { x, y } = guvenliBolge.splice(idx, 1)[0];
+            notrPin.push(new Pin(x, y, "notr", "notr"));
+            for (let j = guvenliBolge.length - 1; j >= 0; j--) {
+              if (
+                Math.hypot(guvenliBolge[j].x - x, guvenliBolge[j].y - y) <
+                pinnoktaBoyutu
+              ) {
+                guvenliBolge.splice(j, 1);
+              }
+            }
+          }
+        }
+        /* Oyuncunun pinlerini yerleştirmesi için */
+        function oyuncuPinYerlestirme(
+          yapi,
+          ekleModu = false,
+          onComplete = () => {}
+        ) {
+          let secili = 0;
+          yazi.textContent = "Yeni pin yerleşimi için pinnokta’e tıkla.";
+
+          function handler(e) {
+            const rect = canvas.getBoundingClientRect(),
+              mx = e.clientX - rect.left,
+              my = e.clientY - rect.top;
+            let enyakin,
+              mesafe = 999;
+            for (let p of pinnoktaDizisi) {
+              const d = Math.hypot(mx - p.x, my - p.y);
+              if (
+                d < 20 &&
+                !oyuncuPinl.find((pp) => pp.x === p.x && pp.y === p.y) &&
+                !rakipPin.find((ep) => ep.x === p.x && ep.y === p.y) &&
+                !notrPin.find((np) => np.x === p.x && np.y === p.y)
+              ) {
+                if (d < mesafe) {
+                  mesafe = d;
+                  enyakin = p;
+                }
+              }
+            }
+            if (enyakin) {
+              oyuncuPinl.push(
+                new Pin(enyakin.x, enyakin.y, yapi[secili], "oyuncu")
+              );
+              secili++;
+              if (secili === yapi.length) {
+                canvas.removeEventListener("click", handler);
+                onComplete();
+                if (!ekleModu) {
+                  yazi.textContent = "Rakip yerleştiriliyor...";
+                  rakipYerlestirme(yapi);
+                }
+                raunduBaslat();
+              }
+            }
+          }
+          canvas.addEventListener("click", handler);
+        }
+        /* Rakip pinlerini rastgele yerleştirmek için */
+        function rakipYerlestirme(yapi = [], devamMi = false) {
+          if (!devamMi) rakipPin = [];
+          const pinYaricapi = 14;
+          const BaslaticiY = 80;
+          let guvenliBolge = pinnoktaDizisi.filter(
+            (p) =>
+              p.x > pinYaricapi &&
+              p.x < w - pinYaricapi &&
+              p.y > BaslaticiY + pinYaricapi &&
+              p.y < h - pinYaricapi &&
+              !oyuncuPinl.some((pp) => pp.x === p.x && pp.y === p.y) &&
+              !notrPin.some((np) => np.x === p.x && np.y === p.y) &&
+              !rakipPin.some((rp) => rp.x === p.x && rp.y === p.y)
+          );
+          for (let i = 0; i < rakipPinlerayisi; i++) {
+            if (!guvenliBolge.length) break;
+            const idx = Math.floor(Math.random() * guvenliBolge.length);
+            const { x, y } = guvenliBolge.splice(idx, 1)[0];
+            const tip = yapi[i % yapi.length];
+            rakipPin.push(new Pin(x, y, tip, "rakip"));
+            for (let j = guvenliBolge.length - 1; j >= 0; j--) {
+              if (
+                Math.hypot(guvenliBolge[j].x - x, guvenliBolge[j].y - y) <
+                pinnoktaBoyutu
+              ) {
+                guvenliBolge.splice(j, 1);
+              }
+            }
+          }
+          rakipYerlestiMi = true;
+        }
+        /* Butona tıklanınca yeni raund başlatmak veya oyunu bitirmek için */
+        btnAdd.addEventListener("click", () => {
+          nextDiv.style.display = "none";
+          /* oyuncunun canı bittiyse oyunu bitirmesi için */
+          if (oyuncuHp <= 0) {
+            alert("Maalesef kaybettiniz!");
+            gameOverSesi.currentTime = 0;
+            gameOverSesi.play();
+            yazi.textContent = "Katledildin!";
+            document.removeEventListener("keydown", shootHandler);
+            return;
+          }
+          /* rakip öldüyse ve level tamamlandıysa seviye atlatması için */
+          if (rakipHp <= 0) {
+            const tamamlanan = level;
+            alert(`Seviye ${tamamlanan} tamamlandı! Yeni strateji seçin.`);
+            yazi.textContent = `Seviye ${tamamlanan} tamamlandı! Yeni strateji seçin.`;
+            if (level < maxLevel) {
+              level++;
+              rakipPinlerayisi += 4;
+              rakipMaxHp = 120 + (level - 1) * 20;
+              rakipHp = rakipMaxHp;
+              rakipYerlestiMi = false;
+              oyuncuPinl = [];
+              rakipPin = [];
+              notrPin = [];
+              levelUpSesi.currentTime = 0;
+              levelUpSesi.play();
+              arayuzGuncelleme();
+              stratejiMenu.style.display = "flex";
+            } else {
+              winSesi.currentTime = 0;
+              winSesi.play();
+              yazi.textContent =
+                "Tebrikler, tüm seviyeleri geçtiniz! Tekrar oynamak için R tuşuna basın.";
+              document.removeEventListener("keydown", shootHandler);
+              document.addEventListener("keydown", (e) => {
+                if (e.key.toLowerCase() === "r") location.reload();
+              });
+            }
+            return;
+          }
+          /* eğer raund bitti ama oyun bitmediyse tekrar seçim ekranı açması için */
+          raundIcinSecim = true;
+          stratejiMenu.style.display = "flex";
+        });
+        /* strateji kartlarına tıklanınca pin yapısını belirlemesi ve oyunu başlatması için */
+        document.querySelectorAll(".card").forEach((card) => {
+          card.addEventListener("click", () => {
+            const secim = card.dataset.strategy;
+            let seciliYapi;
+            if (secim === "offensive")
+              seciliYapi = ["atak", "atak", "atak", "defans"];
+            else if (secim === "defensive")
+              seciliYapi = ["defans", "defans", "saglik", "saglik"];
+            else seciliYapi = ["atak", "atak", "defans", "saglik"];
+            stratejiMenu.style.display = "none";
+            raunduBaslat();
+            notrYerlestirme();
+            oyuncuPinYerlestirme(seciliYapi, raundIcinSecim, () => {
+              yazi.textContent = "Rakip yerleştiriliyor...";
+              rakipYerlestirme(seciliYapi, raundIcinSecim);
+              arayuzGuncelleme();
+              raundIcinSecim = false;
+            });
+          });
+        });
+        /* ana menü ve nasıl oynanır ekranı için */
+        const mainMenu = document.getElementById("mainMenu");
+        const howToPlay = document.getElementById("howToPlay");
+        const playButton = document.getElementById("playButton");
+        const howToPlayBtn = document.getElementById("howToPlayButton");
+        const backToMenuBtn = document.getElementById("backToMenu");
+        /* oyun oyna butonuna basınca oyunu başlatması için */
+        playButton.addEventListener("click", () => {
+          bgMuzik.currentTime = 0;
+          bgMuzik.play();
+          mainMenu.style.display = "none";
+          stratejiMenu.style.display = "flex";
+        });
+        /* nasıl oynanır ekranını açmak için */
+        howToPlayBtn.addEventListener("click", () => {
+          mainMenu.style.display = "none";
+          howToPlay.style.display = "flex";
+        });
+        /* menüye geri dönmek için */
+        backToMenuBtn.addEventListener("click", () => {
+          howToPlay.style.display = "none";
+          mainMenu.style.display = "flex";
+        });
+        /* R tuşuna basınca oyunu yeniden başlatmak için */
+        document.addEventListener("keydown", (e) => {
+          if (e.key.toLowerCase() === "r") {
+            location.reload();
+          }
+        });
+        /* başlangıçta pin noktası çizmesi ve oyun döngüsünü başlatması için */
+        pinnoktaOlusturma();
+        loop();
+      })();
+    </script>
+  </body>
+</html>
