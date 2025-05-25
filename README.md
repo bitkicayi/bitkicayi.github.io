@@ -34,7 +34,7 @@ https://bitkicayi.github.io/
 
 ## ▶️ Oynanış Videosu
 
-[Youtube Linki](...)
+[Youtube Linki](https://youtu.be/pnuEffFnzuQ?si=KSMqTKYe-uea5SLV)
 
 ---
 
