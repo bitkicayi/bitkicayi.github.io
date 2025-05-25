@@ -6,7 +6,7 @@ Oyuncu ve rakip sırayla pin yerleştirerek, toplarla bu pinleri hedef alır. He
 
 ## 📌 Proje Linki
 
-[Oyunu Buradan Oyna]([https://kullaniciadiniz.github.io](https://bitkicayi.github.io/))
+https://kullaniciadiniz.github.io](https://bitkicayi.github.io/
 
 
 ## 📸 Ekran Görüntüleri
