@@ -25,7 +25,7 @@ https://bitkicayi.github.io/
 
 ## 🔊 Özellikler
 
-- HTML5 Canvas ile çizim
+- HTML5 Canvas kullanımı
 - JavaScript ile oyun mekaniği
 - Arkaplan müziği
 - Pin çarpışmalarına ses efektleri
@@ -35,6 +35,27 @@ https://bitkicayi.github.io/
 ## ▶️ Oynanış Videosu
 
 [Youtube Linki](https://youtu.be/pnuEffFnzuQ?si=KSMqTKYe-uea5SLV)
+
+## 📜 Credits
+
+### 🎵 Ses ve Görsel Kaynakları
+
+| 🎶 Arka Plan Müziği | War - Pixabay | [War - Pixabay](https://pixabay.com/music/main-title-war-99133/) |
+| 🔊 Seviye Atlama Sesi | Spacey 1Up - FreeSound | [Spacey 1Up - FreeSound](https://freesound.org/people/GameAudio/sounds/220173/) |
+| 🔔 Pin Sesi | CCCanto07 - FreeSound | [CCCanto07 - FreeSound](https://freesound.org/people/SuGu14/sounds/77982/) |
+| 💀 Game Over Sesi | Game Over - Pixabay | [Game Over - Pixabay](https://pixabay.com/sound-effects/gameover-86548/) |
+| 🏆 Kazanma Sesi | Medieval Fanfare - Pixabay | [Medieval Fanfare - Pixabay](https://pixabay.com/sound-effects/medieval-fanfare-6826/) |
+| 🧠 Strateji Ekranı Arka Planı | Pinterest Görseli | [Pinterest](https://tr.pinterest.com/pin/139048707236785739/) |
+| 🏟️ Oyun Ana Arka Planı | Gladiator Arena - ArtStation | [ArtStation](https://www.artstation.com/artwork/gladiator-arena-1) |
+| 🤖 Diğer Görseller | AI ile üretilmiştir | — |
+
+---
+
+### 🎥 İlham Alınan / İzlenen Videolar ve Orijinal Oyun Linki
+
+- [Coding Challenge 184: Collisions Without a Physics Library!](https://youtu.be/dJNFPv9Mj-Y?si=cvyiybavjj1uP-SY)
+- [Simple to advanced collision detection using vanilla JavaScript and HTML Canvas (VWD - Lecture 7)](https://www.youtube.com/watch?v=Uv8N6OS7V_k&t=4987s)
+- [Dice of Fate](https://twinfox.itch.io/dice-of-fate)
 
 ---
 
