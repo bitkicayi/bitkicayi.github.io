@@ -40,14 +40,17 @@ https://bitkicayi.github.io/
 
 ### 🎵 Ses ve Görsel Kaynakları
 
-| 🎶 Arka Plan Müziği | War - Pixabay | [War - Pixabay](https://pixabay.com/music/main-title-war-99133/) |
-| 🔊 Seviye Atlama Sesi | Spacey 1Up - FreeSound | [Spacey 1Up - FreeSound](https://freesound.org/people/GameAudio/sounds/220173/) |
-| 🔔 Pin Sesi | CCCanto07 - FreeSound | [CCCanto07 - FreeSound](https://freesound.org/people/SuGu14/sounds/77982/) |
-| 💀 Game Over Sesi | Game Over - Pixabay | [Game Over - Pixabay](https://pixabay.com/sound-effects/gameover-86548/) |
-| 🏆 Kazanma Sesi | Medieval Fanfare - Pixabay | [Medieval Fanfare - Pixabay](https://pixabay.com/sound-effects/medieval-fanfare-6826/) |
-| 🧠 Strateji Ekranı Arka Planı | Pinterest Görseli | [Pinterest](https://tr.pinterest.com/pin/139048707236785739/) |
-| 🏟️ Oyun Ana Arka Planı | Gladiator Arena - ArtStation | [ArtStation](https://www.artstation.com/artwork/gladiator-arena-1) |
-| 🤖 Diğer Görseller | AI ile üretilmiştir | — |
+| Tür                     | Açıklama                          | Kaynak                                                                 |
+|-------------------------|-----------------------------------|------------------------------------------------------------------------|
+| 🎶 Arka Plan Müziği     | War - Pixabay                     | [War - Pixabay](https://pixabay.com/music/main-title-war-99133/)       |
+| 🔊 Seviye Atlama Sesi   | Spacey 1Up - FreeSound            | [Spacey 1Up - FreeSound](https://freesound.org/people/GameAudio/sounds/220173/) |
+| 🔔 Pin Sesi             | CCCanto07 - FreeSound             | [CCCanto07 - FreeSound](https://freesound.org/people/SuGu14/sounds/77982/)      |
+| 💀 Game Over Sesi       | Game Over - Pixabay               | [Game Over - Pixabay](https://pixabay.com/sound-effects/gameover-86548/)        |
+| 🏆 Kazanma Sesi         | Medieval Fanfare - Pixabay        | [Medieval Fanfare - Pixabay](https://pixabay.com/sound-effects/medieval-fanfare-6826/) |
+| 🧠 Strateji Arka Planı  | Pinterest Görseli                 | [Pinterest](https://tr.pinterest.com/pin/139048707236785739/)          |
+| 🏟️ Oyun Ana Arka Planı | Gladiator Arena - ArtStation      | [ArtStation](https://www.artstation.com/artwork/gladiator-arena-1)     |
+| 🤖 Diğer Görseller      | AI ile üretilmiştir               | —                                                                      |
+
 
 ---
 
